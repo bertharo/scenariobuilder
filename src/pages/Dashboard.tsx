@@ -10,10 +10,15 @@ import {
   Upload
 } from 'lucide-react';
 import { useWorkspace } from '../contexts/WorkspaceContext';
+import QueryInterface from '../components/QueryInterface';
 
 export default function Dashboard() {
-  const { state } = useWorkspace();
+  const { state, saveScenario } = useWorkspace();
   const { workspace } = state;
+
+  const handleScenarioCreated = async (scenario: any) => {
+    await saveScenario(scenario);
+  };
 
   if (!workspace) {
     return (
@@ -141,6 +146,15 @@ export default function Dashboard() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* AI Query Interface */}
+      <div className="mb-6">
+        <QueryInterface 
+          variables={workspace.variables}
+          scenarios={workspace.scenarios}
+          onScenarioCreated={handleScenarioCreated}
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
