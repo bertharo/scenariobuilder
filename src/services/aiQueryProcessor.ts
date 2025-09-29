@@ -24,11 +24,9 @@ export interface QueryResult {
 
 export class AIQueryProcessor {
   private variables: Variable[] = [];
-  private scenarios: Scenario[] = [];
-
-  constructor(variables: Variable[], scenarios: Scenario[]) {
+  constructor(variables: Variable[], _scenarios: Scenario[]) {
     this.variables = variables;
-    this.scenarios = scenarios;
+    // scenarios parameter kept for future use
   }
 
   async processQuery(query: string): Promise<QueryResult> {

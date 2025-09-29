@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Send, Sparkles, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import { AIQueryProcessor, BusinessQuery, QueryResult } from '../services/aiQueryProcessor';
+import { AIQueryProcessor, QueryResult } from '../services/aiQueryProcessor';
 import { Scenario, Variable } from '../types';
 
 interface QueryInterfaceProps {
