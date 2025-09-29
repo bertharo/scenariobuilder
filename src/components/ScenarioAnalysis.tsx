@@ -381,8 +381,11 @@ export default function ScenarioAnalysis({ query, onClose }: ScenarioAnalysisPro
                     <button className="btn btn-primary">
                       Implement This Option
                     </button>
-                    <button className="btn btn-outline">
-                      Create Scenario
+                    <button 
+                      className="btn btn-outline"
+                      onClick={() => setActiveTab('summary')}
+                    >
+                      Save Scenario
                     </button>
                     <button className="btn btn-outline">
                       Export Details
@@ -395,6 +398,21 @@ export default function ScenarioAnalysis({ query, onClose }: ScenarioAnalysisPro
 
           {activeTab === 'summary' && (
             <div className="space-y-6">
+              {/* Selected Option Indicator */}
+              {selectedOption && (
+                <div className="card p-4 bg-primary-50 border-l-4 border-primary-500">
+                  <div className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-primary-600 mr-2" />
+                    <div>
+                      <h4 className="font-semibold text-primary-900">Selected Strategic Option</h4>
+                      <p className="text-sm text-primary-700">
+                        {analysisData.options.find(opt => opt.id === selectedOption)?.title}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* ARR Summary */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="card p-6">
@@ -515,7 +533,10 @@ export default function ScenarioAnalysis({ query, onClose }: ScenarioAnalysisPro
               <Download className="w-4 h-4 mr-2" />
               Export
             </button>
-            <button className="btn btn-primary">
+            <button 
+              className="btn btn-primary"
+              onClick={() => setActiveTab('summary')}
+            >
               Save Scenario
             </button>
           </div>
