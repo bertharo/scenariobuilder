@@ -140,6 +140,20 @@ export class GoogleSheetsService {
       arrBefore: number;
       arrAfter: number;
       totalDelta: number;
+      prompt: string;
+      options: Array<{
+        id: string;
+        title: string;
+        description: string;
+        riskLevel: 'low' | 'medium' | 'medium-low' | 'high';
+        metrics: {
+          presentationRate?: { old: number; new: number };
+          winRate?: { old: number; new: number };
+          asp?: { old: number; new: number };
+        };
+        arrChange: number;
+        approach: string;
+      }>;
       modelSummary: {
         topGeo: { name: string; value: number };
         topSegment: { name: string; value: number };
@@ -311,18 +325,67 @@ function processScenarioQuery(sheet, query) {
     // For now, returning a mock response that matches your spreadsheet structure
     const runId = 'RUN_' + Utilities.formatDate(new Date(), 'GMT', 'yyyyMMdd_HHmmss_SSS');
     
-    // Mock data based on your spreadsheet structure
+    // Mock data based on your spreadsheet structure with strategic options
     const mockData = {
       runId: runId,
       arrBefore: 125500000,
-      arrAfter: 135500000,
-      totalDelta: 10000000,
+      arrAfter: 140500000,
+      totalDelta: 15000000,
+      prompt: query,
+      options: [
+        {
+          id: 'option-1',
+          title: 'Option 1: Presentation Rate Only',
+          description: 'Top-of-funnel-led, higher risk',
+          riskLevel: 'high',
+          approach: 'Focus on increasing presentation rate through better lead generation',
+          arrChange: 15000000,
+          metrics: {
+            presentationRate: { old: 10, new: 12 }
+          }
+        },
+        {
+          id: 'option-2',
+          title: 'Option 2: Win Rate Only',
+          description: 'Conversion-led, medium risk',
+          riskLevel: 'medium',
+          approach: 'Improve sales conversion through better qualification and closing',
+          arrChange: 15000000,
+          metrics: {
+            winRate: { old: 21, new: 25 }
+          }
+        },
+        {
+          id: 'option-3',
+          title: 'Option 3: ASP Only',
+          description: 'Price-led, medium-low risk',
+          riskLevel: 'medium-low',
+          approach: 'Increase average selling price through premium positioning',
+          arrChange: 15000000,
+          metrics: {
+            asp: { old: 345000, new: 370000 }
+          }
+        },
+        {
+          id: 'option-4',
+          title: 'Option 4: Blended',
+          description: 'Blended, low risk',
+          riskLevel: 'low',
+          approach: 'Combined approach across multiple metrics for balanced growth',
+          arrChange: 15000000,
+          metrics: {
+            presentationRate: { old: 10, new: 11 },
+            winRate: { old: 21, new: 24 },
+            asp: { old: 345000, new: 350000 }
+          }
+        }
+      ],
       modelSummary: {
         topGeo: { name: 'NA', value: 9000000 },
         topSegment: { name: 'SMB', value: 7000000 },
         topProduct: { name: 'SuiteB', value: 5000000 }
       },
-      narrative: \`You asked: \${query}\\n\\nResult: total ARR change = $10,000,000\\nLargest contribution by Geo NA 9,000,000.\\nLargest contribution by Segment SMB 7,000,000.\\nSee agent tabs for details (DataOps, ModelOps, Runner, QA, Constraints, Narrator, Audit).\`,
+      narrative: \`You asked: \${query}\\n\\nResult: total ARR change = $15,000,000\\nEMEA constraint: ≤ $2M\\nLargest contribution by Geo NA 9,000,000.\\nLargest contribution by Segment SMB 7,000,000.\\nSee agent tabs for details (DataOps, ModelOps, Runner, QA, Constraints, Narrator, Audit).\`,
       agentTabs: {
         dataOps: { status: 'completed', data: 'Data operations completed successfully' },
         modelOps: { status: 'completed', data: 'Model operations completed successfully' },

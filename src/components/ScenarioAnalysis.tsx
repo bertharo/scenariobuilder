@@ -24,11 +24,27 @@ interface ScenarioAnalysisProps {
   onClose: () => void;
 }
 
+interface StrategicOption {
+  id: string;
+  title: string;
+  description: string;
+  riskLevel: 'low' | 'medium' | 'medium-low' | 'high';
+  metrics: {
+    presentationRate?: { old: number; new: number };
+    winRate?: { old: number; new: number };
+    asp?: { old: number; new: number };
+  };
+  arrChange: number;
+  approach: string;
+}
+
 interface AnalysisData {
   runId: string;
   arrBefore: number;
   arrAfter: number;
   totalDelta: number;
+  prompt: string;
+  options: StrategicOption[];
   modelSummary: {
     topGeo: { name: string; value: number };
     topSegment: { name: string; value: number };
@@ -50,7 +66,8 @@ export default function ScenarioAnalysis({ query, onClose }: ScenarioAnalysisPro
   const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'summary' | 'narrative' | 'agents'>('summary');
+  const [activeTab, setActiveTab] = useState<'options' | 'summary' | 'narrative' | 'agents'>('options');
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
@@ -69,18 +86,67 @@ export default function ScenarioAnalysis({ query, onClose }: ScenarioAnalysisPro
         if (result.success && result.data) {
           setAnalysisData(result.data);
         } else {
-          // Show mock analysis for demonstration
+          // Show mock analysis for demonstration with strategic options
           const mockData: AnalysisData = {
             runId: 'RUN_' + new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 17),
             arrBefore: 125500000,
-            arrAfter: 135500000,
-            totalDelta: 10000000,
+            arrAfter: 140500000,
+            totalDelta: 15000000,
+            prompt: query,
+            options: [
+              {
+                id: 'option-1',
+                title: 'Option 1: Presentation Rate Only',
+                description: 'Top-of-funnel-led, higher risk',
+                riskLevel: 'high',
+                approach: 'Focus on increasing presentation rate through better lead generation',
+                arrChange: 15000000,
+                metrics: {
+                  presentationRate: { old: 10, new: 12 }
+                }
+              },
+              {
+                id: 'option-2',
+                title: 'Option 2: Win Rate Only',
+                description: 'Conversion-led, medium risk',
+                riskLevel: 'medium',
+                approach: 'Improve sales conversion through better qualification and closing',
+                arrChange: 15000000,
+                metrics: {
+                  winRate: { old: 21, new: 25 }
+                }
+              },
+              {
+                id: 'option-3',
+                title: 'Option 3: ASP Only',
+                description: 'Price-led, medium-low risk',
+                riskLevel: 'medium-low',
+                approach: 'Increase average selling price through premium positioning',
+                arrChange: 15000000,
+                metrics: {
+                  asp: { old: 345000, new: 370000 }
+                }
+              },
+              {
+                id: 'option-4',
+                title: 'Option 4: Blended',
+                description: 'Blended, low risk',
+                riskLevel: 'low',
+                approach: 'Combined approach across multiple metrics for balanced growth',
+                arrChange: 15000000,
+                metrics: {
+                  presentationRate: { old: 10, new: 11 },
+                  winRate: { old: 21, new: 24 },
+                  asp: { old: 345000, new: 350000 }
+                }
+              }
+            ],
             modelSummary: {
               topGeo: { name: 'NA', value: 9000000 },
               topSegment: { name: 'SMB', value: 7000000 },
               topProduct: { name: 'SuiteB', value: 5000000 }
             },
-            narrative: `You asked: ${query}\n\nResult: total ARR change = $10,000,000\nLargest contribution by Geo NA 9,000,000.\nLargest contribution by Segment SMB 7,000,000.\nSee agent tabs for details (DataOps, ModelOps, Runner, QA, Constraints, Narrator, Audit).`,
+            narrative: `You asked: ${query}\n\nResult: total ARR change = $15,000,000\nEMEA constraint: ≤ $2M\nLargest contribution by Geo NA 9,000,000.\nLargest contribution by Segment SMB 7,000,000.\nSee agent tabs for details (DataOps, ModelOps, Runner, QA, Constraints, Narrator, Audit).`,
             agentTabs: {
               dataOps: { status: 'completed', data: 'Data operations completed successfully' },
               modelOps: { status: 'completed', data: 'Model operations completed successfully' },
@@ -171,6 +237,17 @@ export default function ScenarioAnalysis({ query, onClose }: ScenarioAnalysisPro
         {/* Tab Navigation */}
         <div className="flex border-b border-gray-200">
           <button
+            onClick={() => setActiveTab('options')}
+            className={`px-6 py-3 font-medium ${
+              activeTab === 'options'
+                ? 'text-primary-600 border-b-2 border-primary-600'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <CheckCircle className="w-4 h-4 inline mr-2" />
+            Strategic Options
+          </button>
+          <button
             onClick={() => setActiveTab('summary')}
             className={`px-6 py-3 font-medium ${
               activeTab === 'summary'
@@ -207,6 +284,115 @@ export default function ScenarioAnalysis({ query, onClose }: ScenarioAnalysisPro
 
         {/* Content */}
         <div className="p-6 overflow-y-auto max-h-[60vh]">
+          {activeTab === 'options' && (
+            <div className="space-y-6">
+              {/* Prompt */}
+              <div className="card p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Strategic Options</h3>
+                <p className="text-gray-600 mb-4">
+                  <strong>Prompt:</strong> {analysisData.prompt}
+                </p>
+                <p className="text-sm text-gray-500">
+                  Choose from the strategic options below to achieve your ARR target of {formatCurrency(analysisData.totalDelta)}.
+                </p>
+              </div>
+
+              {/* Options Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {analysisData.options.map((option) => (
+                  <div
+                    key={option.id}
+                    className={`card p-6 cursor-pointer transition-all ${
+                      selectedOption === option.id
+                        ? 'ring-2 ring-primary-500 bg-primary-50'
+                        : 'hover:shadow-md'
+                    }`}
+                    onClick={() => setSelectedOption(selectedOption === option.id ? null : option.id)}
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <h4 className="text-lg font-semibold text-gray-900">{option.title}</h4>
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        option.riskLevel === 'low' ? 'bg-green-100 text-green-800' :
+                        option.riskLevel === 'medium-low' ? 'bg-yellow-100 text-yellow-800' :
+                        option.riskLevel === 'medium' ? 'bg-orange-100 text-orange-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {option.riskLevel.replace('-', ' ')} risk
+                      </span>
+                    </div>
+                    
+                    <p className="text-sm text-gray-600 italic mb-4">{option.description}</p>
+                    
+                    <div className="space-y-2 mb-4">
+                      {option.metrics.presentationRate && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Presentation Rate:</span>
+                          <span className="font-medium">
+                            {option.metrics.presentationRate.old}% → {option.metrics.presentationRate.new}%
+                          </span>
+                        </div>
+                      )}
+                      {option.metrics.winRate && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Win Rate:</span>
+                          <span className="font-medium">
+                            {option.metrics.winRate.old}% → {option.metrics.winRate.new}%
+                          </span>
+                        </div>
+                      )}
+                      {option.metrics.asp && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">ASP:</span>
+                          <span className="font-medium">
+                            {formatCurrency(option.metrics.asp.old)} → {formatCurrency(option.metrics.asp.new)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg font-bold text-primary-600">
+                        ARR Change: {formatCurrency(option.arrChange)}
+                      </span>
+                      {selectedOption === option.id && (
+                        <CheckCircle className="w-5 h-5 text-primary-600" />
+                      )}
+                    </div>
+                    
+                    {selectedOption === option.id && (
+                      <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                        <p className="text-sm text-gray-700">
+                          <strong>Approach:</strong> {option.approach}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Selection Actions */}
+              {selectedOption && (
+                <div className="card p-6 bg-primary-50">
+                  <h4 className="text-lg font-semibold text-primary-900 mb-2">Selected Option</h4>
+                  <p className="text-primary-700 mb-4">
+                    You've selected: <strong>{analysisData.options.find(opt => opt.id === selectedOption)?.title}</strong>
+                  </p>
+                  <div className="flex gap-3">
+                    <button className="btn btn-primary">
+                      Implement This Option
+                    </button>
+                    <button className="btn btn-outline">
+                      Create Scenario
+                    </button>
+                    <button className="btn btn-outline">
+                      Export Details
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {activeTab === 'summary' && (
             <div className="space-y-6">
               {/* ARR Summary */}
