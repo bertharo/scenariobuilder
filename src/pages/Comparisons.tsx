@@ -1,0 +1,171 @@
+import React, { useState } from 'react';
+import { Plus, Search, GitCompare, BarChart3, Download } from 'lucide-react';
+import { useWorkspace } from '../contexts/WorkspaceContext';
+import ComparisonCard from '../components/ComparisonCard';
+import ComparisonModal from '../components/ComparisonModal';
+import { Comparison } from '../types';
+
+export default function Comparisons() {
+  const { state } = useWorkspace();
+  const [showModal, setShowModal] = useState(false);
+  const [editingComparison, setEditingComparison] = useState<Comparison | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const { workspace } = state;
+
+  if (!workspace) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <h3 className="text-lg font-medium text-gray-900">No workspace found</h3>
+        </div>
+      </div>
+    );
+  }
+
+  const filteredComparisons = workspace.comparisons.filter(comparison =>
+    comparison.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleCreateComparison = () => {
+    setEditingComparison(null);
+    setShowModal(true);
+  };
+
+  const handleEditComparison = (comparison: Comparison) => {
+    setEditingComparison(comparison);
+    setShowModal(true);
+  };
+
+  const handleSaveComparison = (comparisonData: Omit<Comparison, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const comparison: Comparison = {
+      ...comparisonData,
+      id: editingComparison?.id || crypto.randomUUID(),
+      createdAt: editingComparison?.createdAt || new Date(),
+      updatedAt: new Date(),
+    };
+
+    // Here you would typically save to your backend
+    console.log('Saving comparison:', comparison);
+    setShowModal(false);
+    setEditingComparison(null);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setEditingComparison(null);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="md:flex md:items-center md:justify-between">
+        <div className="flex-1 min-w-0">
+          <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+            Scenario Comparisons
+          </h2>
+          <p className="mt-1 text-sm text-gray-500">
+            Compare and analyze different scenarios side by side
+          </p>
+        </div>
+        <div className="mt-4 flex space-x-3 md:mt-0 md:ml-4">
+          <button
+            type="button"
+            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </button>
+          <button
+            type="button"
+            onClick={handleCreateComparison}
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            New Comparison
+          </button>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="bg-white shadow rounded-lg p-6">
+        <div className="max-w-md">
+          <label htmlFor="search" className="block text-sm font-medium text-gray-700">
+            Search Comparisons
+          </label>
+          <div className="mt-1 relative rounded-md shadow-sm">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              name="search"
+              id="search"
+              className="focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
+              placeholder="Search comparisons..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Comparisons Grid */}
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {filteredComparisons.map((comparison) => (
+          <ComparisonCard
+            key={comparison.id}
+            comparison={comparison}
+            scenarios={workspace.scenarios}
+            variables={workspace.variables}
+            onEdit={handleEditComparison}
+          />
+        ))}
+      </div>
+
+      {/* Empty State */}
+      {filteredComparisons.length === 0 && (
+        <div className="text-center py-12">
+          <div className="mx-auto h-12 w-12 text-gray-400">
+            <GitCompare className="h-12 w-12" />
+          </div>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">
+            {searchTerm 
+              ? 'No comparisons match your search'
+              : 'No comparisons yet'
+            }
+          </h3>
+          <p className="mt-1 text-sm text-gray-500">
+            {searchTerm
+              ? 'Try adjusting your search criteria.'
+              : 'Get started by creating a new comparison.'
+            }
+          </p>
+          {!searchTerm && (
+            <div className="mt-6">
+              <button
+                type="button"
+                onClick={handleCreateComparison}
+                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                New Comparison
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Comparison Modal */}
+      {showModal && (
+        <ComparisonModal
+          comparison={editingComparison}
+          onSave={handleSaveComparison}
+          onClose={handleCloseModal}
+          scenarios={workspace.scenarios}
+          variables={workspace.variables}
+        />
+      )}
+    </div>
+  );
+}
