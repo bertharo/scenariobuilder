@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Save, Database, TrendingUp } from 'lucide-react';
+import { X, Plus, Save } from 'lucide-react';
 import { Variable } from '../types';
 
 interface VariableModalProps {

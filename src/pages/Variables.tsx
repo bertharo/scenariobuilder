@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Plus, Search, Filter, Database, Edit, Trash2, Copy } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, Search, Database } from 'lucide-react';
 import { useWorkspace } from '../contexts/WorkspaceContext';
 import VariableCard from '../components/VariableCard';
 import VariableModal from '../components/VariableModal';

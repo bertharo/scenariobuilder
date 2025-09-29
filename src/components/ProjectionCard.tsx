@@ -3,7 +3,6 @@ import {
   TrendingUp, 
   MoreVertical, 
   Edit, 
-  BarChart3, 
   Calendar,
   Play,
   Download

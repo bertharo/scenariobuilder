@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Plus, Search, Filter, Download, Upload, Play, Pause, Save } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, Search, Filter, Download, Upload } from 'lucide-react';
 import { useWorkspace } from '../contexts/WorkspaceContext';
 import ScenarioCard from '../components/ScenarioCard';
 import ScenarioModal from '../components/ScenarioModal';

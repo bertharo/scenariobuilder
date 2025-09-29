@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Plus, 
@@ -11,7 +10,6 @@ import {
   Upload
 } from 'lucide-react';
 import { useWorkspace } from '../contexts/WorkspaceContext';
-import { formatCurrency, formatPercentage } from '../utils/calculations';
 
 export default function Dashboard() {
   const { state } = useWorkspace();

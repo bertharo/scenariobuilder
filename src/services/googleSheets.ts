@@ -1,4 +1,5 @@
 import { Scenario, Variable, Workspace, GoogleSheetsConfig } from '../types';
+import { API_CONFIG } from '../config/api';
 
 export class GoogleSheetsService {
   private config: GoogleSheetsConfig;
@@ -11,10 +12,11 @@ export class GoogleSheetsService {
 
   async saveScenario(scenario: Scenario): Promise<boolean> {
     try {
-      const response = await fetch(`${this.scriptUrl}/saveScenario`, {
+      const response = await fetch(`${this.scriptUrl}?action=saveScenario`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${API_CONFIG.API_KEY}`,
         },
         body: JSON.stringify({
           spreadsheetId: this.config.spreadsheetId,
@@ -32,7 +34,11 @@ export class GoogleSheetsService {
 
   async loadScenarios(): Promise<Scenario[]> {
     try {
-      const response = await fetch(`${this.scriptUrl}/loadScenarios?spreadsheetId=${this.config.spreadsheetId}&sheetName=${this.config.sheetName}`);
+      const response = await fetch(`${this.scriptUrl}?action=loadScenarios&spreadsheetId=${this.config.spreadsheetId}&sheetName=${this.config.sheetName}`, {
+        headers: {
+          'Authorization': `Bearer ${API_CONFIG.API_KEY}`,
+        },
+      });
       
       if (!response.ok) {
         throw new Error('Failed to load scenarios');
@@ -48,10 +54,11 @@ export class GoogleSheetsService {
 
   async saveVariables(variables: Variable[]): Promise<boolean> {
     try {
-      const response = await fetch(`${this.scriptUrl}/saveVariables`, {
+      const response = await fetch(`${this.scriptUrl}?action=saveVariables`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${API_CONFIG.API_KEY}`,
         },
         body: JSON.stringify({
           spreadsheetId: this.config.spreadsheetId,
@@ -69,7 +76,11 @@ export class GoogleSheetsService {
 
   async loadVariables(): Promise<Variable[]> {
     try {
-      const response = await fetch(`${this.scriptUrl}/loadVariables?spreadsheetId=${this.config.spreadsheetId}&sheetName=${this.config.sheetName}`);
+      const response = await fetch(`${this.scriptUrl}?action=loadVariables&spreadsheetId=${this.config.spreadsheetId}&sheetName=${this.config.sheetName}`, {
+        headers: {
+          'Authorization': `Bearer ${API_CONFIG.API_KEY}`,
+        },
+      });
       
       if (!response.ok) {
         throw new Error('Failed to load variables');
@@ -85,10 +96,11 @@ export class GoogleSheetsService {
 
   async exportToSheets(workspace: Workspace, sheetName: string): Promise<boolean> {
     try {
-      const response = await fetch(`${this.scriptUrl}/exportWorkspace`, {
+      const response = await fetch(`${this.scriptUrl}?action=exportWorkspace`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${API_CONFIG.API_KEY}`,
         },
         body: JSON.stringify({
           spreadsheetId: this.config.spreadsheetId,

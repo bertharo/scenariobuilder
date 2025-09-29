@@ -1,4 +1,3 @@
-import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Scenario, Variable } from '../../types';
 
@@ -16,7 +15,7 @@ export default function ComparisonChart({
   year 
 }: ComparisonChartProps) {
   const generateChartData = () => {
-    const data = [];
+    const data: any[] = [];
     
     selectedMetrics.forEach(metricId => {
       const variable = variables.find(v => v.id === metricId);

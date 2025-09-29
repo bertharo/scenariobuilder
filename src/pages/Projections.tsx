@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Plus, Search, Filter, TrendingUp, BarChart3, Download, Play } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, Search, TrendingUp, Download } from 'lucide-react';
 import { useWorkspace } from '../contexts/WorkspaceContext';
 import ProjectionCard from '../components/ProjectionCard';
 import ProjectionModal from '../components/ProjectionModal';

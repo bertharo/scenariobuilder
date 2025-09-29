@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Save, Calendar, Tag } from 'lucide-react';
+import { X, Plus, Trash2, Save, Tag } from 'lucide-react';
 import { Scenario, Variable, ScenarioVariable, TimeSeries } from '../types';
-import { useWorkspace } from '../contexts/WorkspaceContext';
 
 interface ScenarioModalProps {
   scenario?: Scenario | null;
@@ -11,7 +10,6 @@ interface ScenarioModalProps {
 }
 
 export default function ScenarioModal({ scenario, onSave, onClose, variables }: ScenarioModalProps) {
-  const { state } = useWorkspace();
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -19,10 +17,11 @@ export default function ScenarioModal({ scenario, onSave, onClose, variables }: 
     tags: [] as string[],
     isBaseCase: false,
     variables: [] as ScenarioVariable[],
+    createdBy: 'current-user', // Add required field
   });
   const [newTag, setNewTag] = useState('');
   const [selectedVariable, setSelectedVariable] = useState('');
-  const [timeHorizon, setTimeHorizon] = useState({
+  const [timeHorizon] = useState({
     startYear: new Date().getFullYear(),
     endYear: new Date().getFullYear() + 10,
   });
@@ -36,6 +35,7 @@ export default function ScenarioModal({ scenario, onSave, onClose, variables }: 
         tags: scenario.tags,
         isBaseCase: scenario.isBaseCase,
         variables: scenario.variables,
+        createdBy: scenario.createdBy,
       });
     }
   }, [scenario]);

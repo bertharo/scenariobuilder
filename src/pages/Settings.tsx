@@ -1,14 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { 
-  Settings as SettingsIcon, 
   Save, 
   Cloud, 
   Download, 
   Upload,
-  Database,
-  Globe,
-  DollarSign,
-  Clock
+  Database
 } from 'lucide-react';
 import { useWorkspace } from '../contexts/WorkspaceContext';
 

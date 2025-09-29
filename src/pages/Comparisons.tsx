@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Plus, Search, GitCompare, BarChart3, Download } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, Search, GitCompare, Download } from 'lucide-react';
 import { useWorkspace } from '../contexts/WorkspaceContext';
 import ComparisonCard from '../components/ComparisonCard';
 import ComparisonModal from '../components/ComparisonModal';
