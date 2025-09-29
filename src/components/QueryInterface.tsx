@@ -66,6 +66,10 @@ export default function QueryInterface({ variables, scenarios, onScenarioCreated
           onScenarioCreated(queryResult.scenario);
           setQueryHistory(prev => [query, ...prev.slice(0, 4)]);
           setQuery('');
+          
+          // Also show analysis option for AI-generated scenarios
+          setAnalysisQuery(query);
+          setShowAnalysis(true);
         }
       }
     } catch (error) {
@@ -187,7 +191,7 @@ export default function QueryInterface({ variables, scenarios, onScenarioCreated
                 </div>
               )}
 
-              {result.success && showAnalysis && (
+              {result.success && (
                 <div className="mt-3">
                   <button
                     onClick={() => setShowAnalysis(true)}
