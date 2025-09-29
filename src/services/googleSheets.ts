@@ -173,18 +173,29 @@ export class GoogleSheetsService {
     error?: string;
   }> {
     try {
+      console.log('Calling Apps Script with URL:', `${this.scriptUrl}?action=processScenarioQuery&query=${encodeURIComponent(query)}&spreadsheetId=${this.config.spreadsheetId}&sheetName=${this.config.sheetName}`);
+      
       const response = await fetch(`${this.scriptUrl}?action=processScenarioQuery&query=${encodeURIComponent(query)}&spreadsheetId=${this.config.spreadsheetId}&sheetName=${this.config.sheetName}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${API_CONFIG.API_KEY}`,
         },
+        mode: 'cors', // Add CORS mode
       });
 
+      console.log('Apps Script response status:', response.status);
+
       if (!response.ok) {
-        throw new Error(`Apps Script request failed: ${response.status} ${response.statusText}`);
+        const errorText = await response.text();
+        console.error('Apps Script error response:', errorText);
+        return {
+          success: false,
+          error: `Apps Script request failed: ${response.status} ${response.statusText}. Response: ${errorText}`
+        };
       }
 
       const data = await response.json();
+      console.log('Apps Script response data:', data);
       
       // Check if the response contains an error
       if (data.error) {
@@ -198,7 +209,7 @@ export class GoogleSheetsService {
       if (!data.runId || !data.options || !Array.isArray(data.options)) {
         return {
           success: false,
-          error: 'Invalid response format from Apps Script'
+          error: 'Invalid response format from Apps Script. Expected runId and options array.'
         };
       }
 
@@ -208,6 +219,15 @@ export class GoogleSheetsService {
       };
     } catch (error) {
       console.error('Error processing scenario query:', error);
+      
+      // Check if it's a network error
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        return {
+          success: false,
+          error: 'Cannot connect to Apps Script. Please check: 1) Apps Script is deployed, 2) URL is correct, 3) processScenarioQuery function exists'
+        };
+      }
+      
       return {
         success: false,
         error: `Failed to process query: ${(error as Error).message}`

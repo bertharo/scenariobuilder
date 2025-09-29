@@ -86,7 +86,12 @@ export default function ScenarioAnalysis({ query, onClose }: ScenarioAnalysisPro
         if (result.success && result.data) {
           setAnalysisData(result.data);
         } else {
-          setError(result.error || 'Failed to process query with Apps Script');
+          // Show helpful setup message if Apps Script is not ready
+          if (result.error && result.error.includes('Cannot connect to Apps Script')) {
+            setError('Apps Script not ready yet. Please check the integration guide to set up your processScenarioQuery function.');
+          } else {
+            setError(result.error || 'Failed to process query with Apps Script');
+          }
         }
       } catch (err) {
         setError(`Error: ${(err as Error).message}`);
