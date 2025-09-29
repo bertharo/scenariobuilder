@@ -86,78 +86,7 @@ export default function ScenarioAnalysis({ query, onClose }: ScenarioAnalysisPro
         if (result.success && result.data) {
           setAnalysisData(result.data);
         } else {
-          // Show mock analysis for demonstration with strategic options
-          const mockData: AnalysisData = {
-            runId: 'RUN_' + new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 17),
-            arrBefore: 125500000,
-            arrAfter: 140500000,
-            totalDelta: 15000000,
-            prompt: query,
-            options: [
-              {
-                id: 'option-1',
-                title: 'Option 1: Presentation Rate Only',
-                description: 'Top-of-funnel-led, higher risk',
-                riskLevel: 'high',
-                approach: 'Focus on increasing presentation rate through better lead generation',
-                arrChange: 15000000,
-                metrics: {
-                  presentationRate: { old: 10, new: 12 }
-                }
-              },
-              {
-                id: 'option-2',
-                title: 'Option 2: Win Rate Only',
-                description: 'Conversion-led, medium risk',
-                riskLevel: 'medium',
-                approach: 'Improve sales conversion through better qualification and closing',
-                arrChange: 15000000,
-                metrics: {
-                  winRate: { old: 21, new: 25 }
-                }
-              },
-              {
-                id: 'option-3',
-                title: 'Option 3: ASP Only',
-                description: 'Price-led, medium-low risk',
-                riskLevel: 'medium-low',
-                approach: 'Increase average selling price through premium positioning',
-                arrChange: 15000000,
-                metrics: {
-                  asp: { old: 345000, new: 370000 }
-                }
-              },
-              {
-                id: 'option-4',
-                title: 'Option 4: Blended',
-                description: 'Blended, low risk',
-                riskLevel: 'low',
-                approach: 'Combined approach across multiple metrics for balanced growth',
-                arrChange: 15000000,
-                metrics: {
-                  presentationRate: { old: 10, new: 11 },
-                  winRate: { old: 21, new: 24 },
-                  asp: { old: 345000, new: 350000 }
-                }
-              }
-            ],
-            modelSummary: {
-              topGeo: { name: 'NA', value: 9000000 },
-              topSegment: { name: 'SMB', value: 7000000 },
-              topProduct: { name: 'SuiteB', value: 5000000 }
-            },
-            narrative: `You asked: ${query}\n\nResult: total ARR change = $15,000,000\nEMEA constraint: ≤ $2M\nLargest contribution by Geo NA 9,000,000.\nLargest contribution by Segment SMB 7,000,000.\nSee agent tabs for details (DataOps, ModelOps, Runner, QA, Constraints, Narrator, Audit).`,
-            agentTabs: {
-              dataOps: { status: 'completed', data: 'Data operations completed successfully' },
-              modelOps: { status: 'completed', data: 'Model operations completed successfully' },
-              runner: { status: 'completed', data: 'Scenario runner completed successfully' },
-              qa: { status: 'completed', data: 'Quality assurance checks passed' },
-              constraints: { status: 'completed', data: 'Constraints validated successfully' },
-              narrator: { status: 'completed', data: 'Narrative generated successfully' },
-              audit: { status: 'completed', data: 'Audit trail created successfully' }
-            }
-          };
-          setAnalysisData(mockData);
+          setError(result.error || 'Failed to process query with Apps Script');
         }
       } catch (err) {
         setError(`Error: ${(err as Error).message}`);

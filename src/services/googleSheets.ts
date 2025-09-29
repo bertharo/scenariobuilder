@@ -173,24 +173,35 @@ export class GoogleSheetsService {
     error?: string;
   }> {
     try {
-      const response = await fetch(`${this.scriptUrl}?action=processScenarioQuery`, {
-        method: 'POST',
+      const response = await fetch(`${this.scriptUrl}?action=processScenarioQuery&query=${encodeURIComponent(query)}&spreadsheetId=${this.config.spreadsheetId}&sheetName=${this.config.sheetName}`, {
+        method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${API_CONFIG.API_KEY}`,
         },
-        body: JSON.stringify({
-          spreadsheetId: this.config.spreadsheetId,
-          sheetName: this.config.sheetName,
-          query: query,
-        }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to process scenario query');
+        throw new Error(`Apps Script request failed: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
+      
+      // Check if the response contains an error
+      if (data.error) {
+        return {
+          success: false,
+          error: data.error
+        };
+      }
+
+      // Validate that we have the required data structure
+      if (!data.runId || !data.options || !Array.isArray(data.options)) {
+        return {
+          success: false,
+          error: 'Invalid response format from Apps Script'
+        };
+      }
+
       return {
         success: true,
         data: data
@@ -316,88 +327,50 @@ function syncWorkspace(sheet) {
 
 function processScenarioQuery(sheet, query) {
   try {
+    // TODO: Replace this with your actual LRP Copilot logic
     // This function should integrate with your existing LRP Copilot logic
     // Based on your spreadsheet, it should:
     // 1. Process the natural language query
-    // 2. Run the scenario through your existing agents
-    // 3. Return the comprehensive analysis
+    // 2. Run the scenario through your existing agents (DataOps, ModelOps, Runner, QA, Constraints, Narrator, Audit)
+    // 3. Generate strategic options with risk assessment
+    // 4. Return the comprehensive analysis
     
-    // For now, returning a mock response that matches your spreadsheet structure
+    // Example structure for your Apps Script response:
     const runId = 'RUN_' + Utilities.formatDate(new Date(), 'GMT', 'yyyyMMdd_HHmmss_SSS');
     
-    // Mock data based on your spreadsheet structure with strategic options
-    const mockData = {
+    // Your LRP Copilot should return data in this format:
+    const result = {
       runId: runId,
-      arrBefore: 125500000,
-      arrAfter: 140500000,
-      totalDelta: 15000000,
+      arrBefore: 125500000, // Get from your baseline data
+      arrAfter: 140500000,  // Calculate from your scenario
+      totalDelta: 15000000, // Calculate the difference
       prompt: query,
       options: [
-        {
-          id: 'option-1',
-          title: 'Option 1: Presentation Rate Only',
-          description: 'Top-of-funnel-led, higher risk',
-          riskLevel: 'high',
-          approach: 'Focus on increasing presentation rate through better lead generation',
-          arrChange: 15000000,
-          metrics: {
-            presentationRate: { old: 10, new: 12 }
-          }
-        },
-        {
-          id: 'option-2',
-          title: 'Option 2: Win Rate Only',
-          description: 'Conversion-led, medium risk',
-          riskLevel: 'medium',
-          approach: 'Improve sales conversion through better qualification and closing',
-          arrChange: 15000000,
-          metrics: {
-            winRate: { old: 21, new: 25 }
-          }
-        },
-        {
-          id: 'option-3',
-          title: 'Option 3: ASP Only',
-          description: 'Price-led, medium-low risk',
-          riskLevel: 'medium-low',
-          approach: 'Increase average selling price through premium positioning',
-          arrChange: 15000000,
-          metrics: {
-            asp: { old: 345000, new: 370000 }
-          }
-        },
-        {
-          id: 'option-4',
-          title: 'Option 4: Blended',
-          description: 'Blended, low risk',
-          riskLevel: 'low',
-          approach: 'Combined approach across multiple metrics for balanced growth',
-          arrChange: 15000000,
-          metrics: {
-            presentationRate: { old: 10, new: 11 },
-            winRate: { old: 21, new: 24 },
-            asp: { old: 345000, new: 350000 }
-          }
-        }
+        // Generate these from your LRP Copilot logic
+        // Each option should have: id, title, description, riskLevel, metrics, arrChange, approach
       ],
       modelSummary: {
         topGeo: { name: 'NA', value: 9000000 },
         topSegment: { name: 'SMB', value: 7000000 },
         topProduct: { name: 'SuiteB', value: 5000000 }
       },
-      narrative: \`You asked: \${query}\\n\\nResult: total ARR change = $15,000,000\\nEMEA constraint: ≤ $2M\\nLargest contribution by Geo NA 9,000,000.\\nLargest contribution by Segment SMB 7,000,000.\\nSee agent tabs for details (DataOps, ModelOps, Runner, QA, Constraints, Narrator, Audit).\`,
+      narrative: 'Your LRP Copilot narrative here...',
       agentTabs: {
-        dataOps: { status: 'completed', data: 'Data operations completed successfully' },
-        modelOps: { status: 'completed', data: 'Model operations completed successfully' },
-        runner: { status: 'completed', data: 'Scenario runner completed successfully' },
-        qa: { status: 'completed', data: 'Quality assurance checks passed' },
-        constraints: { status: 'completed', data: 'Constraints validated successfully' },
-        narrator: { status: 'completed', data: 'Narrative generated successfully' },
-        audit: { status: 'completed', data: 'Audit trail created successfully' }
+        dataOps: { status: 'completed', data: 'Your DataOps results' },
+        modelOps: { status: 'completed', data: 'Your ModelOps results' },
+        runner: { status: 'completed', data: 'Your Runner results' },
+        qa: { status: 'completed', data: 'Your QA results' },
+        constraints: { status: 'completed', data: 'Your Constraints results' },
+        narrator: { status: 'completed', data: 'Your Narrator results' },
+        audit: { status: 'completed', data: 'Your Audit results' }
       }
     };
     
-    return ContentService.createTextOutput(JSON.stringify(mockData))
+    // For now, return an error to indicate Apps Script needs implementation
+    return ContentService.createTextOutput(JSON.stringify({ 
+      success: false, 
+      error: 'Apps Script processScenarioQuery function needs to be implemented with your LRP Copilot logic' 
+    }))
       .setMimeType(ContentService.MimeType.JSON);
       
   } catch (error) {
