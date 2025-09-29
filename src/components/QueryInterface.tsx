@@ -1,7 +1,10 @@
 import { useState } from 'react';
-import { Send, Sparkles, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Send, Sparkles, Loader2, CheckCircle, AlertCircle, BarChart3 } from 'lucide-react';
 import { AIQueryProcessor, QueryResult } from '../services/aiQueryProcessor';
+import { GoogleSheetsService } from '../services/googleSheets';
+import { API_CONFIG, GOOGLE_SHEETS_CONFIG } from '../config/api';
 import { Scenario, Variable } from '../types';
+import ScenarioAnalysis from './ScenarioAnalysis';
 
 interface QueryInterfaceProps {
   variables: Variable[];
@@ -14,6 +17,13 @@ export default function QueryInterface({ variables, scenarios, onScenarioCreated
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState<QueryResult | null>(null);
   const [queryHistory, setQueryHistory] = useState<string[]>([]);
+  const [showAnalysis, setShowAnalysis] = useState(false);
+  const [analysisQuery, setAnalysisQuery] = useState('');
+
+  const googleSheetsService = new GoogleSheetsService(
+    GOOGLE_SHEETS_CONFIG,
+    API_CONFIG.GOOGLE_APPS_SCRIPT_URL
+  );
 
   const exampleQueries = [
     "Increase total ARR by $5M",
@@ -31,15 +41,32 @@ export default function QueryInterface({ variables, scenarios, onScenarioCreated
     setResult(null);
 
     try {
-      const processor = new AIQueryProcessor(variables, scenarios);
-      const queryResult = await processor.processQuery(query);
+      // First try the GoogleSheetsService for comprehensive analysis
+      const sheetsResult = await googleSheetsService.processScenarioQuery(query);
       
-      setResult(queryResult);
-      
-      if (queryResult.success && queryResult.scenario) {
-        onScenarioCreated(queryResult.scenario);
-        setQueryHistory(prev => [query, ...prev.slice(0, 4)]); // Keep last 5 queries
+      if (sheetsResult.success && sheetsResult.data) {
+        // Show comprehensive analysis
+        setAnalysisQuery(query);
+        setShowAnalysis(true);
+        setResult({
+          success: true,
+          message: "Scenario analysis completed! View detailed results below.",
+          suggestions: ["View comprehensive analysis", "Save scenario", "Export results"]
+        });
+        setQueryHistory(prev => [query, ...prev.slice(0, 4)]);
         setQuery('');
+      } else {
+        // Fallback to AI processor
+        const processor = new AIQueryProcessor(variables, scenarios);
+        const queryResult = await processor.processQuery(query);
+        
+        setResult(queryResult);
+        
+        if (queryResult.success && queryResult.scenario) {
+          onScenarioCreated(queryResult.scenario);
+          setQueryHistory(prev => [query, ...prev.slice(0, 4)]);
+          setQuery('');
+        }
       }
     } catch (error) {
       console.error('Error processing query:', error);
@@ -159,9 +186,32 @@ export default function QueryInterface({ variables, scenarios, onScenarioCreated
                   </ul>
                 </div>
               )}
+
+              {result.success && showAnalysis && (
+                <div className="mt-3">
+                  <button
+                    onClick={() => setShowAnalysis(true)}
+                    className="btn btn-primary flex items-center text-sm"
+                  >
+                    <BarChart3 className="w-4 h-4 mr-2" />
+                    View Comprehensive Analysis
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
+      )}
+
+      {/* Scenario Analysis Modal */}
+      {showAnalysis && analysisQuery && (
+        <ScenarioAnalysis
+          query={analysisQuery}
+          onClose={() => {
+            setShowAnalysis(false);
+            setAnalysisQuery('');
+          }}
+        />
       )}
     </div>
   );

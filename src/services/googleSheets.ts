@@ -131,6 +131,64 @@ export class GoogleSheetsService {
       return null;
     }
   }
+
+  // New method to process natural language queries using the existing Apps Script logic
+  async processScenarioQuery(query: string): Promise<{
+    success: boolean;
+    data?: {
+      runId: string;
+      arrBefore: number;
+      arrAfter: number;
+      totalDelta: number;
+      modelSummary: {
+        topGeo: { name: string; value: number };
+        topSegment: { name: string; value: number };
+        topProduct: { name: string; value: number };
+      };
+      narrative: string;
+      agentTabs: {
+        dataOps: any;
+        modelOps: any;
+        runner: any;
+        qa: any;
+        constraints: any;
+        narrator: any;
+        audit: any;
+      };
+    };
+    error?: string;
+  }> {
+    try {
+      const response = await fetch(`${this.scriptUrl}?action=processScenarioQuery`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${API_CONFIG.API_KEY}`,
+        },
+        body: JSON.stringify({
+          spreadsheetId: this.config.spreadsheetId,
+          sheetName: this.config.sheetName,
+          query: query,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to process scenario query');
+      }
+
+      const data = await response.json();
+      return {
+        success: true,
+        data: data
+      };
+    } catch (error) {
+      console.error('Error processing scenario query:', error);
+      return {
+        success: false,
+        error: `Failed to process query: ${(error as Error).message}`
+      };
+    }
+  }
 }
 
 // Google Apps Script code that should be deployed
@@ -151,6 +209,8 @@ function doGet(e) {
         return loadVariables(sheet);
       case 'syncWorkspace':
         return syncWorkspace(sheet);
+      case 'processScenarioQuery':
+        return processScenarioQuery(sheet, e.parameter.query);
       default:
         return ContentService.createTextOutput(JSON.stringify({ error: 'Invalid action' }))
           .setMimeType(ContentService.MimeType.JSON);
@@ -238,5 +298,51 @@ function syncWorkspace(sheet) {
   
   return ContentService.createTextOutput(JSON.stringify({ workspace: {} }))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+function processScenarioQuery(sheet, query) {
+  try {
+    // This function should integrate with your existing LRP Copilot logic
+    // Based on your spreadsheet, it should:
+    // 1. Process the natural language query
+    // 2. Run the scenario through your existing agents
+    // 3. Return the comprehensive analysis
+    
+    // For now, returning a mock response that matches your spreadsheet structure
+    const runId = 'RUN_' + Utilities.formatDate(new Date(), 'GMT', 'yyyyMMdd_HHmmss_SSS');
+    
+    // Mock data based on your spreadsheet structure
+    const mockData = {
+      runId: runId,
+      arrBefore: 125500000,
+      arrAfter: 135500000,
+      totalDelta: 10000000,
+      modelSummary: {
+        topGeo: { name: 'NA', value: 9000000 },
+        topSegment: { name: 'SMB', value: 7000000 },
+        topProduct: { name: 'SuiteB', value: 5000000 }
+      },
+      narrative: \`You asked: \${query}\\n\\nResult: total ARR change = $10,000,000\\nLargest contribution by Geo NA 9,000,000.\\nLargest contribution by Segment SMB 7,000,000.\\nSee agent tabs for details (DataOps, ModelOps, Runner, QA, Constraints, Narrator, Audit).\`,
+      agentTabs: {
+        dataOps: { status: 'completed', data: 'Data operations completed successfully' },
+        modelOps: { status: 'completed', data: 'Model operations completed successfully' },
+        runner: { status: 'completed', data: 'Scenario runner completed successfully' },
+        qa: { status: 'completed', data: 'Quality assurance checks passed' },
+        constraints: { status: 'completed', data: 'Constraints validated successfully' },
+        narrator: { status: 'completed', data: 'Narrative generated successfully' },
+        audit: { status: 'completed', data: 'Audit trail created successfully' }
+      }
+    };
+    
+    return ContentService.createTextOutput(JSON.stringify(mockData))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ 
+      success: false, 
+      error: error.toString() 
+    }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
 }
 `;
