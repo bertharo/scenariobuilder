@@ -173,13 +173,10 @@ export class GoogleSheetsService {
     error?: string;
   }> {
     try {
-      console.log('Calling Apps Script with URL:', `${this.scriptUrl}?action=processScenarioQuery&query=${encodeURIComponent(query)}&spreadsheetId=${this.config.spreadsheetId}&sheetName=${this.config.sheetName}`);
+      console.log('Calling Apps Script with URL:', `${this.scriptUrl}?action=processScenarioQuery&query=${encodeURIComponent(query)}`);
       
-      const response = await fetch(`${this.scriptUrl}?action=processScenarioQuery&query=${encodeURIComponent(query)}&spreadsheetId=${this.config.spreadsheetId}&sheetName=${this.config.sheetName}`, {
+      const response = await fetch(`${this.scriptUrl}?action=processScenarioQuery&query=${encodeURIComponent(query)}`, {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${API_CONFIG.API_KEY}`,
-        },
         mode: 'cors', // Add CORS mode
       });
 

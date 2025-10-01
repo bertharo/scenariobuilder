@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { GoogleSheetsService } from '../services/googleSheets';
 import { API_CONFIG, GOOGLE_SHEETS_CONFIG } from '../config/api';
-import { formatCurrency, formatPercentage } from '../utils/calculations';
+import { formatCurrency } from '../utils/calculations';
 
 interface ScenarioAnalysisProps {
   query: string;
@@ -378,7 +378,7 @@ export default function ScenarioAnalysis({ query, onClose }: ScenarioAnalysisPro
                     {totalDelta >= 0 ? '+' : ''}{formatCurrency(totalDelta)}
                   </p>
                   <p className="text-sm text-gray-600">
-                    {totalDelta >= 0 ? '+' : ''}{formatPercentage(deltaPercentage)} change
+                    {totalDelta >= 0 ? '+' : ''}{deltaPercentage.toFixed(2)}% change
                   </p>
                 </div>
               </div>
