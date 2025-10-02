@@ -141,14 +141,21 @@ function processScenarioQueryWithExecution(query) {
     var runId = '';
     try {
       console.log('🚀 Triggering LRP Copilot execution...');
-      runPrompt(); // This is the main LRP Copilot function
+      runId = runPrompt(); // This returns the RUN_ID
       console.log('✅ LRP Copilot execution completed');
-      
-      // Get the most recent run ID
-      runId = getMostRecentRunId(ss);
       console.log('✅ Run ID:', runId);
+      
+      // Force spreadsheet to finish all calculations
+      SpreadsheetApp.flush();
+      console.log('✅ Spreadsheet flushed');
+      
+      // Give formulas time to recalculate
+      Utilities.sleep(2000); // Wait 2 seconds for formulas to update
+      console.log('✅ Waited for formulas to recalculate');
+      
     } catch (error) {
       console.error('❌ Error executing runPrompt:', error.message);
+      console.error('❌ Error stack:', error.stack);
       return createErrorResponse('Failed to execute LRP Copilot: ' + error.message);
     }
     
