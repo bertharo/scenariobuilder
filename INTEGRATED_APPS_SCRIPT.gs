@@ -561,13 +561,161 @@ function buildVWDeltas_(runId) {
   }
 }
 
-// Placeholder functions (your model should have these)
+// ========================================
+// APPLY SCENARIO CHANGES TO DRIVERS
+// ========================================
+
+/**
+ * Apply deltas to the Drivers_NetNew sheet
+ * This modifies Win Rate and ASP for the specified region
+ */
 function applyDeltasToDrivers_(region, deltaAsp, deltaWin) {
-  console.log('applyDeltasToDrivers_:', region, deltaAsp, deltaWin);
+  console.log('Applying deltas:', {region: region, deltaAsp: deltaAsp, deltaWin: deltaWin});
+  
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var driversSheet = ss.getSheetByName('Drivers_NetNew');
+  
+  if (!driversSheet) {
+    console.warn('Drivers_NetNew sheet not found, skipping delta application');
+    return;
+  }
+  
+  var data = driversSheet.getDataRange().getValues();
+  var headers = data[0];
+  
+  // Find column indices
+  var regionCol = headers.indexOf('Region');
+  var winRateCol = headers.indexOf('Win Rate');
+  var aspHCMCol = headers.indexOf('Landing ASP — HCM');
+  var aspFINCol = headers.indexOf('Landing ASP — FIN');
+  
+  if (regionCol === -1) {
+    console.error('Region column not found in Drivers_NetNew');
+    return;
+  }
+  
+  console.log('Column indices:', {
+    region: regionCol,
+    winRate: winRateCol,
+    aspHCM: aspHCMCol,
+    aspFIN: aspFINCol
+  });
+  
+  var changesApplied = 0;
+  
+  // Apply changes to matching rows
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    var rowRegion = row[regionCol];
+    
+    // Check if this row matches the target region (or apply to all if region is 'All Segments')
+    if (rowRegion === region || region === 'All Segments' || !region) {
+      
+      // Update Win Rate if column exists and delta is provided
+      if (winRateCol >= 0 && deltaWin && deltaWin !== 0) {
+        var currentWinRate = Number(row[winRateCol]) || 0;
+        var newWinRate = currentWinRate + (deltaWin / 100); // Convert percentage points to decimal
+        driversSheet.getRange(i + 1, winRateCol + 1).setValue(newWinRate);
+        console.log('Updated Win Rate for row ' + (i + 1) + ': ' + currentWinRate + ' → ' + newWinRate);
+        changesApplied++;
+      }
+      
+      // Update Landing ASP — HCM if column exists and delta is provided
+      if (aspHCMCol >= 0 && deltaAsp && deltaAsp !== 0) {
+        var currentASP = Number(row[aspHCMCol]) || 0;
+        var newASP = currentASP + deltaAsp;
+        driversSheet.getRange(i + 1, aspHCMCol + 1).setValue(newASP);
+        console.log('Updated ASP HCM for row ' + (i + 1) + ': ' + currentASP + ' → ' + newASP);
+        changesApplied++;
+      }
+      
+      // Update Landing ASP — FIN if column exists and delta is provided
+      if (aspFINCol >= 0 && deltaAsp && deltaAsp !== 0) {
+        var currentASP = Number(row[aspFINCol]) || 0;
+        var newASP = currentASP + deltaAsp;
+        driversSheet.getRange(i + 1, aspFINCol + 1).setValue(newASP);
+        console.log('Updated ASP FIN for row ' + (i + 1) + ': ' + currentASP + ' → ' + newASP);
+        changesApplied++;
+      }
+    }
+  }
+  
+  console.log('✅ Applied ' + changesApplied + ' changes to Drivers_NetNew');
+  
+  // Force recalculation
+  SpreadsheetApp.flush();
 }
 
+/**
+ * Enforce platform cap constraint
+ * This limits the Platform % values in Drivers_NetNew
+ */
 function enforcePlatformCap_Core_(region, platformCap) {
-  console.log('enforcePlatformCap_Core_:', region, platformCap);
+  console.log('Enforcing platform cap:', {region: region, cap: platformCap});
+  
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var driversSheet = ss.getSheetByName('Drivers_NetNew');
+  
+  if (!driversSheet) {
+    console.warn('Drivers_NetNew sheet not found, skipping platform cap');
+    return;
+  }
+  
+  var data = driversSheet.getDataRange().getValues();
+  var headers = data[0];
+  
+  // Find column indices
+  var regionCol = headers.indexOf('Region');
+  var platformCoreCol = headers.indexOf('Platform % — Core (on HCM Core)');
+  var platformNCBCCol = headers.indexOf('Platform % — NCBC (on HCM NCBC)');
+  
+  if (regionCol === -1) {
+    console.error('Region column not found in Drivers_NetNew');
+    return;
+  }
+  
+  console.log('Platform cap columns:', {
+    region: regionCol,
+    platformCore: platformCoreCol,
+    platformNCBC: platformNCBCCol
+  });
+  
+  var capsApplied = 0;
+  
+  // Apply cap to matching rows
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    var rowRegion = row[regionCol];
+    
+    // Check if this row matches the target region
+    if (rowRegion === region || region === 'All Segments' || !region) {
+      
+      // Cap Platform % — Core
+      if (platformCoreCol >= 0) {
+        var currentPlatform = Number(row[platformCoreCol]) || 0;
+        if (currentPlatform > platformCap) {
+          driversSheet.getRange(i + 1, platformCoreCol + 1).setValue(platformCap);
+          console.log('Capped Platform Core for row ' + (i + 1) + ': ' + currentPlatform + ' → ' + platformCap);
+          capsApplied++;
+        }
+      }
+      
+      // Cap Platform % — NCBC
+      if (platformNCBCCol >= 0) {
+        var currentPlatform = Number(row[platformNCBCCol]) || 0;
+        if (currentPlatform > platformCap) {
+          driversSheet.getRange(i + 1, platformNCBCCol + 1).setValue(platformCap);
+          console.log('Capped Platform NCBC for row ' + (i + 1) + ': ' + currentPlatform + ' → ' + platformCap);
+          capsApplied++;
+        }
+      }
+    }
+  }
+  
+  console.log('✅ Applied ' + capsApplied + ' platform caps');
+  
+  // Force recalculation
+  SpreadsheetApp.flush();
 }
 
 // ========================================
