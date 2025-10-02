@@ -254,6 +254,11 @@ function runPrompt() {
   if (!inc) throw new Error('Could not parse prompt format. Expected: "Increase <Region> ARR by $X"');
   
   var region = inc[1].toUpperCase();
+  
+  // Handle "all", "total", "global" as meaning all regions
+  if (region === 'ALL' || region === 'TOTAL' || region === 'GLOBAL') {
+    region = 'ALL_REGIONS';
+  }
   var target = parseUsd_(inc[2], inc[3]);
 
   var capMatch = /platform\s+share\s*(?:<=|≤|<\\=)\s*([0-9]{1,3})\s*%?/i.exec(prompt);
@@ -266,7 +271,9 @@ function runPrompt() {
   var shSettings = ss.getSheetByName('Settings');
   if (!shSettings) throw new Error('Settings sheet not found');
   
-  shSc.getRange('B3').setValue(region);
+  // For ALL_REGIONS, we'll apply changes to all regions but set display region
+  var displayRegion = (region === 'ALL_REGIONS') ? 'Global' : region;
+  shSc.getRange('B3').setValue(displayRegion);
   shSc.getRange('B4').setValue('All Segments');
   shSettings.getRange('B1').setValue(target);
   SpreadsheetApp.flush();
@@ -649,8 +656,8 @@ function applyDeltasToDrivers_(region, deltaAsp, deltaWin) {
     var row = data[i];
     var rowRegion = row[regionCol];
     
-    // Check if this row matches the target region (or apply to all if region is 'All Segments')
-    if (rowRegion === region || region === 'All Segments' || !region) {
+    // Check if this row matches the target region (or apply to all if region is special)
+    if (rowRegion === region || region === 'All Segments' || region === 'ALL_REGIONS' || !region) {
       
       // Update Win Rate if column exists and delta is provided
       if (winRateCol >= 0 && deltaWin && deltaWin !== 0) {
@@ -729,7 +736,7 @@ function enforcePlatformCap_Core_(region, platformCap) {
     var rowRegion = row[regionCol];
     
     // Check if this row matches the target region
-    if (rowRegion === region || region === 'All Segments' || !region) {
+    if (rowRegion === region || region === 'All Segments' || region === 'ALL_REGIONS' || !region) {
       
       // Cap Platform % — Core
       if (platformCoreCol >= 0) {
