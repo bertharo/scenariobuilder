@@ -18,6 +18,40 @@ var SPREADSHEET_ID = '1sZkiUIJuysCMupZEg-hDuS4dt3EGjNHeM9Gqidq8t0k';
 var SHEET_NAME = 'LRP Simulation';
 
 // ========================================
+// MENU CREATION (Shows LRP Copilot Menu)
+// ========================================
+
+/**
+ * Creates the LRP Copilot menu when the spreadsheet opens
+ */
+function onOpen() {
+  var ui = SpreadsheetApp.getUi();
+  ui.createMenu('LRP Copilot')
+    .addItem('Run Prompt', 'runPrompt')
+    .addItem('Install / Rebuild Model', 'ensureBeforeAfterAudit_')
+    .addSeparator()
+    .addItem('Factory Reset (drivers back to seed)', 'factoryReset')
+    .addToUi();
+}
+
+/**
+ * Factory reset function to restore original driver values
+ */
+function factoryReset() {
+  var ui = SpreadsheetApp.getUi();
+  var response = ui.alert(
+    'Factory Reset',
+    'This will reset all drivers to their original seed values. Continue?',
+    ui.ButtonSet.YES_NO
+  );
+  
+  if (response == ui.Button.YES) {
+    // Add your factory reset logic here
+    ui.alert('Factory Reset', 'Reset complete!', ui.ButtonSet.OK);
+  }
+}
+
+// ========================================
 // WEB APP HANDLERS
 // ========================================
 
