@@ -189,6 +189,8 @@ function processScenarioQueryWithExecution(query) {
         topSegment: topChanges.topSegment || { name: 'All Segments', value: results.totalDelta * 0.35 },
         topProduct: topChanges.topProduct || { name: 'Platform', value: results.totalDelta * 0.25 }
       },
+      regionBreakdown: topChanges.regionBreakdown || [],
+      segmentBreakdown: topChanges.segmentBreakdown || [],
       narrative: generateNarrativeFromLRP(query, results, parsedPrompt),
       agentTabs: {
         dataOps: { 
@@ -934,20 +936,49 @@ function getTopChangesFromVWDeltas(ss, runId) {
     var regionCol = headers.indexOf('Region');
     var segmentCol = headers.indexOf('Segment');
     var metricCol = headers.indexOf('FieldOrMetric');
+    var beforeCol = headers.indexOf('Before');
+    var afterCol = headers.indexOf('After');
     var deltaCol = headers.indexOf('Delta');
     
     var geoTotals = {};
     var segmentTotals = {};
     var productTotals = {};
     
+    // Detailed breakdowns with Before/After/Delta
+    var regionBreakdown = {};
+    var segmentBreakdown = {};
+    
     for (var i = 1; i < data.length; i++) {
       var row = data[i];
       if (row[runIdCol] !== runId || row[kindCol] !== 'OUTPUT') continue;
       
+      var metric = row[metricCol];
+      // Only use ARR — Ending for totals
+      if (metric !== 'ARR — Ending') continue;
+      
       var region = row[regionCol] || 'Unknown';
       var segment = row[segmentCol] || 'Unknown';
+      var before = Number(row[beforeCol]) || 0;
+      var after = Number(row[afterCol]) || 0;
       var delta = Number(row[deltaCol]) || 0;
       
+      // Accumulate by region
+      if (!regionBreakdown[region]) {
+        regionBreakdown[region] = { before: 0, after: 0, delta: 0 };
+      }
+      regionBreakdown[region].before += before;
+      regionBreakdown[region].after += after;
+      regionBreakdown[region].delta += delta;
+      
+      // Accumulate by segment
+      if (!segmentBreakdown[segment]) {
+        segmentBreakdown[segment] = { before: 0, after: 0, delta: 0 };
+      }
+      segmentBreakdown[segment].before += before;
+      segmentBreakdown[segment].after += after;
+      segmentBreakdown[segment].delta += delta;
+      
+      // Legacy totals for top contributor
       geoTotals[region] = (geoTotals[region] || 0) + delta;
       segmentTotals[segment] = (segmentTotals[segment] || 0) + delta;
     }
@@ -968,10 +999,41 @@ function getTopChangesFromVWDeltas(ss, runId) {
       }
     }
     
+    // Convert breakdown objects to arrays for easier display
+    var regionBreakdownArray = [];
+    for (var region in regionBreakdown) {
+      regionBreakdownArray.push({
+        name: region,
+        before: regionBreakdown[region].before,
+        after: regionBreakdown[region].after,
+        delta: regionBreakdown[region].delta,
+        percentage: regionBreakdown[region].before > 0 ? 
+          (regionBreakdown[region].delta / regionBreakdown[region].before) * 100 : 0
+      });
+    }
+    
+    var segmentBreakdownArray = [];
+    for (var segment in segmentBreakdown) {
+      segmentBreakdownArray.push({
+        name: segment,
+        before: segmentBreakdown[segment].before,
+        after: segmentBreakdown[segment].after,
+        delta: segmentBreakdown[segment].delta,
+        percentage: segmentBreakdown[segment].before > 0 ?
+          (segmentBreakdown[segment].delta / segmentBreakdown[segment].before) * 100 : 0
+      });
+    }
+    
+    // Sort by delta (highest first)
+    regionBreakdownArray.sort(function(a, b) { return b.delta - a.delta; });
+    segmentBreakdownArray.sort(function(a, b) { return b.delta - a.delta; });
+    
     return {
       topGeo: topGeo,
       topSegment: topSegment,
-      topProduct: { name: 'Platform', value: topGeo.value * 0.6 } // Estimated
+      topProduct: { name: 'Platform', value: topGeo.value * 0.6 },
+      regionBreakdown: regionBreakdownArray,
+      segmentBreakdown: segmentBreakdownArray
     };
     
   } catch (error) {

@@ -50,6 +50,20 @@ interface AnalysisData {
     topSegment: { name: string; value: number };
     topProduct: { name: string; value: number };
   };
+  regionBreakdown?: Array<{
+    name: string;
+    before: number;
+    after: number;
+    delta: number;
+    percentage: number;
+  }>;
+  segmentBreakdown?: Array<{
+    name: string;
+    before: number;
+    after: number;
+    delta: number;
+    percentage: number;
+  }>;
   narrative: string;
   agentTabs: {
     dataOps: any;
@@ -413,6 +427,95 @@ export default function ScenarioAnalysis({ query, onClose }: ScenarioAnalysisPro
                   </div>
                 </div>
               </div>
+
+              {/* Detailed Breakdowns */}
+              {(analysisData.regionBreakdown && analysisData.regionBreakdown.length > 0) && (
+                <div className="card p-6">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4">Regional Breakdown</h3>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Region</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">ARR Before</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">ARR After</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Delta</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Change %</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {analysisData.regionBreakdown.map((region) => (
+                          <tr key={region.name} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              {region.name}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-right">
+                              {formatCurrency(region.before)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-right">
+                              {formatCurrency(region.after)}
+                            </td>
+                            <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium text-right ${
+                              region.delta >= 0 ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {region.delta >= 0 ? '+' : ''}{formatCurrency(region.delta)}
+                            </td>
+                            <td className={`px-6 py-4 whitespace-nowrap text-sm text-right ${
+                              region.delta >= 0 ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {region.delta >= 0 ? '+' : ''}{region.percentage.toFixed(2)}%
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {(analysisData.segmentBreakdown && analysisData.segmentBreakdown.length > 0) && (
+                <div className="card p-6">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4">Segment Breakdown</h3>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Segment</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">ARR Before</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">ARR After</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Delta</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Change %</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {analysisData.segmentBreakdown.map((segment) => (
+                          <tr key={segment.name} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              {segment.name}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-right">
+                              {formatCurrency(segment.before)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-right">
+                              {formatCurrency(segment.after)}
+                            </td>
+                            <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium text-right ${
+                              segment.delta >= 0 ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {segment.delta >= 0 ? '+' : ''}{formatCurrency(segment.delta)}
+                            </td>
+                            <td className={`px-6 py-4 whitespace-nowrap text-sm text-right ${
+                              segment.delta >= 0 ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {segment.delta >= 0 ? '+' : ''}{segment.percentage.toFixed(2)}%
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
 
               {showDetails && (
                 <div className="card p-6">
