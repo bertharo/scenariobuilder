@@ -618,18 +618,24 @@ function buildVWDeltas_(runId) {
  * This modifies Win Rate and ASP for the specified region
  */
 function applyDeltasToDrivers_(region, deltaAsp, deltaWin) {
-  console.log('Applying deltas:', {region: region, deltaAsp: deltaAsp, deltaWin: deltaWin});
+  console.log('=== APPLYING DELTAS TO DRIVERS ===');
+  console.log('Target region:', region);
+  console.log('Delta ASP:', deltaAsp);
+  console.log('Delta Win Rate (pp):', deltaWin);
   
   var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   var driversSheet = ss.getSheetByName('Drivers_NetNew');
   
   if (!driversSheet) {
-    console.warn('Drivers_NetNew sheet not found, skipping delta application');
+    console.error('❌ Drivers_NetNew sheet not found!');
     return;
   }
+  console.log('✅ Drivers_NetNew sheet found');
   
   var data = driversSheet.getDataRange().getValues();
   var headers = data[0];
+  
+  console.log('📋 Headers in Drivers_NetNew:', headers.join(', '));
   
   // Find column indices
   var regionCol = headers.indexOf('Region');
@@ -637,19 +643,26 @@ function applyDeltasToDrivers_(region, deltaAsp, deltaWin) {
   var aspHCMCol = headers.indexOf('Landing ASP — HCM');
   var aspFINCol = headers.indexOf('Landing ASP — FIN');
   
+  console.log('🔍 Column indices found:');
+  console.log('  Region column:', regionCol);
+  console.log('  Win Rate column:', winRateCol);
+  console.log('  Landing ASP — HCM column:', aspHCMCol);
+  console.log('  Landing ASP — FIN column:', aspFINCol);
+  
   if (regionCol === -1) {
-    console.error('Region column not found in Drivers_NetNew');
+    console.error('❌ Region column not found in Drivers_NetNew!');
     return;
   }
   
-  console.log('Column indices:', {
-    region: regionCol,
-    winRate: winRateCol,
-    aspHCM: aspHCMCol,
-    aspFIN: aspFINCol
-  });
+  if (winRateCol === -1 && aspHCMCol === -1 && aspFINCol === -1) {
+    console.error('❌ No Win Rate or ASP columns found!');
+    return;
+  }
+  
+  console.log('📊 Total data rows:', data.length - 1);
   
   var changesApplied = 0;
+  var matchingRows = 0;
   
   // Apply changes to matching rows
   for (var i = 1; i < data.length; i++) {
@@ -658,13 +671,20 @@ function applyDeltasToDrivers_(region, deltaAsp, deltaWin) {
     
     // Check if this row matches the target region (or apply to all if region is special)
     if (rowRegion === region || region === 'All Segments' || region === 'ALL_REGIONS' || !region) {
+      matchingRows++;
+      
+      if (matchingRows === 1) {
+        console.log('✅ First matching row found at row ' + (i + 1) + ' with region: "' + rowRegion + '"');
+      }
       
       // Update Win Rate if column exists and delta is provided
       if (winRateCol >= 0 && deltaWin && deltaWin !== 0) {
         var currentWinRate = Number(row[winRateCol]) || 0;
         var newWinRate = currentWinRate + (deltaWin / 100); // Convert percentage points to decimal
         driversSheet.getRange(i + 1, winRateCol + 1).setValue(newWinRate);
-        console.log('Updated Win Rate for row ' + (i + 1) + ': ' + currentWinRate + ' → ' + newWinRate);
+        if (changesApplied < 3) { // Log first 3 changes only
+          console.log('  Updated Win Rate for row ' + (i + 1) + ': ' + currentWinRate + ' → ' + newWinRate);
+        }
         changesApplied++;
       }
       
@@ -673,7 +693,9 @@ function applyDeltasToDrivers_(region, deltaAsp, deltaWin) {
         var currentASP = Number(row[aspHCMCol]) || 0;
         var newASP = currentASP + deltaAsp;
         driversSheet.getRange(i + 1, aspHCMCol + 1).setValue(newASP);
-        console.log('Updated ASP HCM for row ' + (i + 1) + ': ' + currentASP + ' → ' + newASP);
+        if (changesApplied < 3) {
+          console.log('  Updated ASP HCM for row ' + (i + 1) + ': $' + currentASP + ' → $' + newASP);
+        }
         changesApplied++;
       }
       
@@ -682,13 +704,27 @@ function applyDeltasToDrivers_(region, deltaAsp, deltaWin) {
         var currentASP = Number(row[aspFINCol]) || 0;
         var newASP = currentASP + deltaAsp;
         driversSheet.getRange(i + 1, aspFINCol + 1).setValue(newASP);
-        console.log('Updated ASP FIN for row ' + (i + 1) + ': ' + currentASP + ' → ' + newASP);
+        if (changesApplied < 3) {
+          console.log('  Updated ASP FIN for row ' + (i + 1) + ': $' + currentASP + ' → $' + newASP);
+        }
         changesApplied++;
       }
     }
   }
   
-  console.log('✅ Applied ' + changesApplied + ' changes to Drivers_NetNew');
+  console.log('📊 Matching rows found:', matchingRows);
+  console.log('✅ Total changes applied:', changesApplied);
+  
+  if (matchingRows === 0) {
+    console.error('❌ NO MATCHING ROWS FOUND!');
+    console.error('   Target region: "' + region + '"');
+    console.error('   Regions in spreadsheet: Check Drivers_NetNew Region column');
+  }
+  
+  if (changesApplied === 0) {
+    console.error('❌ NO CHANGES APPLIED!');
+    console.error('   Either columns not found or deltas are 0');
+  }
   
   // Force recalculation
   SpreadsheetApp.flush();
