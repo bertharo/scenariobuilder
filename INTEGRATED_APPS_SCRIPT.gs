@@ -595,7 +595,13 @@ function buildVWDeltas_(runId) {
     var before = Number(recB['Value'] || 0);
     var after = Number(recA['Value'] || 0);
     var delta = after - before;
-    if (Math.abs(delta) < 1e-6 && recB['Metric'] !== 'Platform Share — Core') return;
+    
+    // Always include Platform Share and ARR — Ending, even if delta is 0
+    var alwaysInclude = (recB['Metric'] === 'Platform Share — Core' || recB['Metric'] === 'ARR — Ending');
+    
+    // For other metrics, only include if delta is significant
+    if (Math.abs(delta) < 1e-6 && !alwaysInclude) return;
+    
     var pct = (before !== 0) ? (delta / before) : '';
     rowsOut.push([
       runId, 'OUTPUT',
@@ -848,6 +854,10 @@ function readResultsFromVWDeltas(ss, runId) {
     var totalDelta = 0;
     
     // Sum up all "ARR — Ending" OUTPUT rows for this run
+    // If no ARR — Ending rows, fall back to "ARR — Net New Total"
+    var arrEndingCount = 0;
+    var netNewCount = 0;
+    
     for (var i = 1; i < data.length; i++) {
       var row = data[i];
       var currentRunId = row[runIdCol];
@@ -863,7 +873,33 @@ function readResultsFromVWDeltas(ss, runId) {
         arrBefore += before;
         arrAfter += after;
         totalDelta += delta;
+        arrEndingCount++;
       }
+    }
+    
+    // If no ARR — Ending rows found, try ARR — Net New Total
+    if (arrEndingCount === 0) {
+      console.warn('⚠️ No ARR — Ending rows found, using ARR — Net New Total');
+      for (var i = 1; i < data.length; i++) {
+        var row = data[i];
+        var currentRunId = row[runIdCol];
+        var kind = row[kindCol];
+        var metric = row[metricCol];
+        
+        if (currentRunId === runId && kind === 'OUTPUT' && metric === 'ARR — Net New Total') {
+          var before = Number(row[beforeCol]) || 0;
+          var after = Number(row[afterCol]) || 0;
+          var delta = Number(row[deltaCol]) || 0;
+          
+          arrBefore += before;
+          arrAfter += after;
+          totalDelta += delta;
+          netNewCount++;
+        }
+      }
+      console.log('✅ Used ' + netNewCount + ' ARR — Net New Total rows instead');
+    } else {
+      console.log('✅ Found ' + arrEndingCount + ' ARR — Ending rows');
     }
     
     console.log('VW_Deltas totals:', {
