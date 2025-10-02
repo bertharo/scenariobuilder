@@ -83,7 +83,13 @@ export default function ScenarioAnalysis({ query, onClose }: ScenarioAnalysisPro
 
         const result = await googleSheetsService.processScenarioQuery(query);
         
+        console.log('Full result:', result);
+        console.log('result.data:', result.data);
+        console.log('result.data.arrBefore:', result.data?.arrBefore);
+        console.log('result.data.arrAfter:', result.data?.arrAfter);
+        
         if (result.success && result.data) {
+          console.log('Setting analysis data:', result.data);
           setAnalysisData(result.data);
         } else {
           // Show helpful setup message if Apps Script is not ready
