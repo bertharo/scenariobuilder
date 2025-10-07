@@ -173,9 +173,32 @@ export class GoogleSheetsService {
     error?: string;
   }> {
     try {
-      console.log('Calling Apps Script with URL:', `${this.scriptUrl}?action=processScenarioQuery&query=${encodeURIComponent(query)}`);
+      // STEP 1: Process query through ChatGPT for better NLP
+      let processedQuery = query;
+      const openaiApiKey = import.meta.env.VITE_OPENAI_API_KEY;
       
-      const response = await fetch(`${this.scriptUrl}?action=processScenarioQuery&query=${encodeURIComponent(query)}`, {
+      if (openaiApiKey) {
+        try {
+          console.log('🤖 Processing query with ChatGPT...');
+          const openaiService = new OpenAIService(openaiApiKey);
+          const parsed = await openaiService.parsePrompt(query);
+          console.log('✅ ChatGPT parsed:', parsed);
+          
+          // Convert ChatGPT's structured output to Apps Script format
+          processedQuery = openaiService.buildAppsScriptPrompt(parsed);
+          console.log('📝 Formatted prompt for Apps Script:', processedQuery);
+        } catch (openaiError) {
+          console.warn('⚠️ ChatGPT parsing failed, using original query:', openaiError);
+          // Continue with original query if ChatGPT fails
+        }
+      } else {
+        console.log('ℹ️ No OpenAI API key configured, using direct query');
+      }
+      
+      // STEP 2: Send to Apps Script (now with ChatGPT-enhanced prompt)
+      console.log('Calling Apps Script with URL:', `${this.scriptUrl}?action=processScenarioQuery&query=${encodeURIComponent(processedQuery)}`);
+      
+      const response = await fetch(`${this.scriptUrl}?action=processScenarioQuery&query=${encodeURIComponent(processedQuery)}`, {
         method: 'GET',
         mode: 'cors', // Add CORS mode
       });
