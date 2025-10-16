@@ -1,4 +1,4 @@
-import { eq, and, desc, asc } from 'drizzle-orm';
+import { eq, desc, asc } from 'drizzle-orm';
 import { db } from './config';
 import { 
   workspaces, 
@@ -49,7 +49,7 @@ export class DatabaseService {
 
   static async deleteWorkspace(id: string): Promise<boolean> {
     const result = await db.delete(workspaces).where(eq(workspaces.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Variable operations
@@ -59,11 +59,12 @@ export class DatabaseService {
   }
 
   static async getVariables(workspaceId: string): Promise<Variable[]> {
-    return await db
+    const result = await db
       .select()
       .from(variables)
       .where(eq(variables.workspaceId, workspaceId))
       .orderBy(asc(variables.name));
+    return Array.isArray(result) ? result : [];
   }
 
   static async getVariable(id: string): Promise<Variable | null> {
@@ -82,7 +83,7 @@ export class DatabaseService {
 
   static async deleteVariable(id: string): Promise<boolean> {
     const result = await db.delete(variables).where(eq(variables.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Scenario operations
@@ -92,11 +93,12 @@ export class DatabaseService {
   }
 
   static async getScenarios(workspaceId: string): Promise<Scenario[]> {
-    return await db
+    const result = await db
       .select()
       .from(scenarios)
       .where(eq(scenarios.workspaceId, workspaceId))
       .orderBy(desc(scenarios.updatedAt));
+    return Array.isArray(result) ? result : [];
   }
 
   static async getScenario(id: string): Promise<Scenario | null> {
@@ -115,7 +117,7 @@ export class DatabaseService {
 
   static async deleteScenario(id: string): Promise<boolean> {
     const result = await db.delete(scenarios).where(eq(scenarios.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Projection operations
@@ -148,7 +150,7 @@ export class DatabaseService {
 
   static async deleteProjection(id: string): Promise<boolean> {
     const result = await db.delete(projections).where(eq(projections.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Comparison operations
@@ -181,7 +183,7 @@ export class DatabaseService {
 
   static async deleteComparison(id: string): Promise<boolean> {
     const result = await db.delete(comparisons).where(eq(comparisons.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // LRP Run operations
@@ -219,7 +221,7 @@ export class DatabaseService {
 
   static async deleteLRPRun(id: string): Promise<boolean> {
     const result = await db.delete(lrpRuns).where(eq(lrpRuns.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Utility operations
