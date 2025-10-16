@@ -4,7 +4,10 @@ import {
   Cloud, 
   Download, 
   Upload,
-  Database
+  Database,
+  CheckCircle,
+  XCircle,
+  RefreshCw
 } from 'lucide-react';
 import { useWorkspace } from '../contexts/WorkspaceContext';
 
@@ -19,6 +22,10 @@ export default function Settings() {
     currency: 'USD',
     timeZone: 'UTC',
     defaultTimeHorizon: 10,
+  });
+  const [databaseConfig, setDatabaseConfig] = useState({
+    connectionString: '',
+    status: 'disconnected' as 'connected' | 'disconnected' | 'testing'
   });
 
   const { workspace } = state;
@@ -71,6 +78,42 @@ export default function Settings() {
     console.log('Importing data...');
   };
 
+  const handleDatabaseConfigChange = (field: string, value: string) => {
+    setDatabaseConfig(prev => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleTestDatabaseConnection = async () => {
+    setDatabaseConfig(prev => ({ ...prev, status: 'testing' }));
+    
+    try {
+      // Test database connection
+      const response = await fetch('/api/database/health', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ connectionString: databaseConfig.connectionString }),
+      });
+      
+      if (response.ok) {
+        setDatabaseConfig(prev => ({ ...prev, status: 'connected' }));
+      } else {
+        setDatabaseConfig(prev => ({ ...prev, status: 'disconnected' }));
+      }
+    } catch (error) {
+      console.error('Database connection test failed:', error);
+      setDatabaseConfig(prev => ({ ...prev, status: 'disconnected' }));
+    }
+  };
+
+  const handleSaveDatabaseConfig = () => {
+    // Save database configuration
+    console.log('Saving database config:', databaseConfig);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -86,6 +129,72 @@ export default function Settings() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Database Configuration */}
+        <div className="bg-white shadow rounded-lg">
+          <div className="px-4 py-5 sm:p-6">
+            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+              Database Configuration
+            </h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="databaseUrl" className="block text-sm font-medium text-gray-700">
+                  Database Connection String
+                </label>
+                <input
+                  type="password"
+                  name="databaseUrl"
+                  id="databaseUrl"
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                  placeholder="postgresql://username:password@hostname:5432/database_name?sslmode=require"
+                  value={databaseConfig.connectionString}
+                  onChange={(e) => handleDatabaseConfigChange('connectionString', e.target.value)}
+                />
+                <p className="mt-1 text-sm text-gray-500">
+                  Your Neon database connection string from the console
+                </p>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <div className="flex items-center">
+                  {databaseConfig.status === 'connected' && (
+                    <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                  )}
+                  {databaseConfig.status === 'disconnected' && (
+                    <XCircle className="h-5 w-5 text-red-500 mr-2" />
+                  )}
+                  {databaseConfig.status === 'testing' && (
+                    <RefreshCw className="h-5 w-5 text-blue-500 mr-2 animate-spin" />
+                  )}
+                  <span className="text-sm font-medium text-gray-700">
+                    Status: {databaseConfig.status === 'testing' ? 'Testing...' : databaseConfig.status}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 space-y-3">
+              <button
+                type="button"
+                onClick={handleSaveDatabaseConfig}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Save Database Config
+              </button>
+              
+              <button
+                type="button"
+                onClick={handleTestDatabaseConnection}
+                className="ml-3 inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+              >
+                <Database className="h-4 w-4 mr-2" />
+                Test Connection
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Workspace Settings */}
         <div className="bg-white shadow rounded-lg">
           <div className="px-4 py-5 sm:p-6">
