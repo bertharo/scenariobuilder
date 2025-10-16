@@ -1,5 +1,5 @@
 // ========================================
-// INTEGRATED LRP COPILOT - COMPLETE APPS SCRIPT
+// MODELING COPILOT - INTEGRATED APPS SCRIPT
 // ========================================
 // This script integrates all components:
 // - Web App Handler (doGet/doPost)
@@ -22,12 +22,12 @@ var SHEET_NAME = 'LRP Simulation';
 // ========================================
 
 /**
- * Creates the LRP Copilot menu when the spreadsheet opens
+ * Creates the Modeling Copilot menu when the spreadsheet opens
  */
 function onOpen() {
   var ui = SpreadsheetApp.getUi();
-  ui.createMenu('LRP Copilot')
-    .addItem('Run Prompt', 'runPrompt')
+  ui.createMenu('Modeling Copilot')
+    .addItem('Run Scenario Analysis', 'runPrompt')
     .addItem('Install / Rebuild Model', 'ensureBeforeAfterAudit_')
     .addSeparator()
     .addItem('Factory Reset (drivers back to seed)', 'factoryReset')
@@ -71,7 +71,7 @@ function doOptions(e) {
 
 function handleRequest(e) {
   try {
-    console.log('=== LRP COPILOT WEB REQUEST ===');
+    console.log('=== MODELING COPILOT WEB REQUEST ===');
     
     if (!e) {
       return createErrorResponse('No request data received');
@@ -98,7 +98,7 @@ function handleRequest(e) {
     } else {
       return createSuccessResponse({
         success: true,
-        message: "LRP Copilot API is ready!",
+        message: "Modeling Copilot API is ready!",
         timestamp: new Date().toISOString()
       });
     }
@@ -140,9 +140,9 @@ function processScenarioQueryWithExecution(query) {
     // - Build VW_Deltas
     var runId = '';
     try {
-      console.log('🚀 Triggering LRP Copilot execution...');
+      console.log('🚀 Triggering Modeling Copilot execution...');
       runId = runPrompt(); // This returns the RUN_ID
-      console.log('✅ LRP Copilot execution completed');
+      console.log('✅ Modeling Copilot execution completed');
       console.log('✅ Run ID:', runId);
       
       // Force spreadsheet to finish all calculations
@@ -156,7 +156,7 @@ function processScenarioQueryWithExecution(query) {
     } catch (error) {
       console.error('❌ Error executing runPrompt:', error.message);
       console.error('❌ Error stack:', error.stack);
-      return createErrorResponse('Failed to execute LRP Copilot: ' + error.message);
+      return createErrorResponse('Failed to execute Modeling Copilot: ' + error.message);
     }
     
     // STEP 4: Read results from VW_Deltas
@@ -224,7 +224,7 @@ function processScenarioQueryWithExecution(query) {
       }
     };
     
-    console.log('✅ Response generated with real LRP Copilot data');
+    console.log('✅ Response generated with real Modeling Copilot data');
     return createSuccessResponse(response);
     
   } catch (error) {
@@ -234,7 +234,7 @@ function processScenarioQueryWithExecution(query) {
 }
 
 // ========================================
-// LRP COPILOT EXECUTION (runPrompt)
+// MODELING COPILOT EXECUTION (runPrompt)
 // ========================================
 
 function runPrompt() {

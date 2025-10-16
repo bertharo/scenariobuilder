@@ -63,10 +63,10 @@ export default function Projections() {
       <div className="md:flex md:items-center md:justify-between">
         <div className="flex-1 min-w-0">
           <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
-            Projections
+            Financial Projections
           </h2>
           <p className="mt-1 text-sm text-gray-500">
-            Generate and analyze projections from your scenarios
+            Generate advanced financial projections with Monte Carlo simulations and AI insights
           </p>
         </div>
         <div className="mt-4 flex space-x-3 md:mt-0 md:ml-4">

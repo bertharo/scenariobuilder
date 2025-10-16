@@ -62,10 +62,10 @@ export default function Comparisons() {
       <div className="md:flex md:items-center md:justify-between">
         <div className="flex-1 min-w-0">
           <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
-            Scenario Comparisons
+            Scenario Analysis
           </h2>
           <p className="mt-1 text-sm text-gray-500">
-            Compare and analyze different scenarios side by side
+            Compare scenarios with advanced analytics and AI-powered insights
           </p>
         </div>
         <div className="mt-4 flex space-x-3 md:mt-0 md:ml-4">
